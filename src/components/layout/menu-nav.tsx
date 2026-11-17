@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils"
 import { NavLink } from "react-router-dom"
-import { ClipboardList, LayoutGrid, MapPin, Utensils } from "lucide-react"
+import { ClipboardList, LayoutGrid, MapPin, SquareKanban, Utensils } from "lucide-react"
 
 // itens do menu de navegação entre as áreas do CMS
 const menuItems = [
@@ -8,6 +8,7 @@ const menuItems = [
     { to: "/products", label: "Produtos", icon: Utensils },
     { to: "/spots", label: "Mesas", icon: MapPin },
     { to: "/guest-checks", label: "Comandas", icon: ClipboardList },
+    { to: "/orders", label: "Pedidos", icon: SquareKanban },
 ]
 
 export function MenuNav() {
