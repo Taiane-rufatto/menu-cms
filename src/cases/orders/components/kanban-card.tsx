@@ -1,3 +1,4 @@
+import { useDraggable } from "@dnd-kit/core";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatDateTime } from "@/lib/format";
 import type { OrderDTO } from "../dtos/order.dto";
@@ -8,8 +9,22 @@ interface KanbanCardProps {
 
 // cartão do pedido no Kanban: mesa, itens e horário
 export function KanbanCard({ order }: KanbanCardProps) {
+
+    // useDraggable deixa o cartão "arrastável"; o id do cartão é o id do pedido
+    const { setNodeRef, listeners, attributes, transform, isDragging } = useDraggable({ id: order.id });
+
+    // enquanto arrasta, o cartão acompanha o mouse
+    const style = transform ? { transform: `translate(${transform.x}px, ${transform.y}px)` } : undefined;
+
     return (
-        <Card size="sm">
+        <Card
+            size="sm"
+            ref={setNodeRef}
+            style={style}
+            {...listeners}
+            {...attributes}
+            className={isDragging ? 'z-10 cursor-grabbing opacity-80 shadow-lg' : 'cursor-grab'}
+        >
             <CardContent className="flex flex-col gap-2">
                 <div className="flex items-center justify-between">
                     <strong>{order.guestCheck?.spot.name}</strong>
