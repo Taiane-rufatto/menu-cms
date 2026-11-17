@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { Plus } from "lucide-react";
-import { useCategories, useCreateCategory, useUpdateCategory } from "@/cases/categories/hooks/use-category";
+import { useCategories, useCreateCategory, useDeleteCategory, useUpdateCategory } from "@/cases/categories/hooks/use-category";
 import { CategoryTable } from "@/cases/categories/components/category-table";
 import { CategoryFormDialog } from "@/cases/categories/components/category-form-dialog";
 import type { CategoryDTO, CategoryFormDTO } from "@/cases/categories/dtos/category.dto";
 import { QueryState } from "@/components/shared/query-state";
+import { ConfirmDeleteDialog } from "@/components/shared/confirm-delete-dialog";
 import { FeedbackAlert, type Feedback } from "@/components/shared/feedback-alert";
 import { Button } from "@/components/ui/button";
 import { getErrorMessage } from "@/lib/error-message";
@@ -14,9 +15,11 @@ export function CategoryPage() {
     const { data: categories = [], isLoading, isError } = useCategories();
     const createCategory = useCreateCategory();
     const updateCategory = useUpdateCategory();
+    const deleteCategory = useDeleteCategory();
 
     const [formOpen, setFormOpen] = useState(false);
     const [editing, setEditing] = useState<CategoryDTO | null>(null);
+    const [deleting, setDeleting] = useState<CategoryDTO | null>(null);
     const [feedback, setFeedback] = useState<Feedback | null>(null);
 
     function openNew() {
@@ -53,6 +56,17 @@ export function CategoryPage() {
         }
     }
 
+    // só exclui depois que o usuário confirma no diálogo
+    function handleConfirmDelete() {
+        if (!deleting) return;
+
+        deleteCategory.mutate(deleting.id, {
+            onSuccess: () => setFeedback({ type: 'success', message: 'Categoria excluída.' }),
+            onError: (error) => setFeedback({ type: 'error', message: getErrorMessage(error) }),
+        });
+        setDeleting(null);
+    }
+
     return (
         <div className="flex flex-col gap-6">
             <div className="flex items-center justify-between">
@@ -73,7 +87,7 @@ export function CategoryPage() {
                 <CategoryTable
                     categories={categories}
                     onEdit={openEdit}
-                    onDelete={() => {}}
+                    onDelete={setDeleting}
                 />
             )}
 
@@ -85,6 +99,13 @@ export function CategoryPage() {
                     onSubmit={handleSave}
                 />
             )}
+
+            <ConfirmDeleteDialog
+                open={deleting !== null}
+                itemName={deleting?.name ?? ''}
+                onCancel={() => setDeleting(null)}
+                onConfirm={handleConfirmDelete}
+            />
         </div>
     )
 }
