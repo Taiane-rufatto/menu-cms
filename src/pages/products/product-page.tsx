@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { Plus } from "lucide-react";
-import { useCreateProduct, useProducts, useUpdateProduct } from "@/cases/products/hooks/use-product";
+import { useCreateProduct, useDeleteProduct, useProducts, useUpdateProduct } from "@/cases/products/hooks/use-product";
 import { ProductTable } from "@/cases/products/components/product-table";
 import { CategoryFilter } from "@/cases/products/components/category-filter";
 import { ProductFormDialog } from "@/cases/products/components/product-form-dialog";
 import type { ProductDTO, ProductFormDTO } from "@/cases/products/dtos/product.dto";
 import { QueryState } from "@/components/shared/query-state";
+import { ConfirmDeleteDialog } from "@/components/shared/confirm-delete-dialog";
 import { FeedbackAlert, type Feedback } from "@/components/shared/feedback-alert";
 import { Button } from "@/components/ui/button";
 import { getErrorMessage } from "@/lib/error-message";
@@ -20,9 +21,11 @@ export function ProductPage() {
     );
     const createProduct = useCreateProduct();
     const updateProduct = useUpdateProduct();
+    const deleteProduct = useDeleteProduct();
 
     const [formOpen, setFormOpen] = useState(false);
     const [editing, setEditing] = useState<ProductDTO | null>(null);
+    const [deleting, setDeleting] = useState<ProductDTO | null>(null);
     const [feedback, setFeedback] = useState<Feedback | null>(null);
 
     function openNew() {
@@ -59,6 +62,17 @@ export function ProductPage() {
         }
     }
 
+    // só exclui depois que o usuário confirma no diálogo
+    function handleConfirmDelete() {
+        if (!deleting) return;
+
+        deleteProduct.mutate(deleting.id, {
+            onSuccess: () => setFeedback({ type: 'success', message: 'Produto excluído.' }),
+            onError: (error) => setFeedback({ type: 'error', message: getErrorMessage(error) }),
+        });
+        setDeleting(null);
+    }
+
     return (
         <div className="flex flex-col gap-6">
             <div className="flex items-center justify-between">
@@ -81,7 +95,7 @@ export function ProductPage() {
                 <ProductTable
                     products={products}
                     onEdit={openEdit}
-                    onDelete={() => {}}
+                    onDelete={setDeleting}
                 />
             )}
 
@@ -93,6 +107,13 @@ export function ProductPage() {
                     onSubmit={handleSave}
                 />
             )}
+
+            <ConfirmDeleteDialog
+                open={deleting !== null}
+                itemName={deleting?.name ?? ''}
+                onCancel={() => setDeleting(null)}
+                onConfirm={handleConfirmDelete}
+            />
         </div>
     )
 }
