@@ -31,7 +31,10 @@ export function ProductFormDialog({ product, isSaving, onClose, onSubmit }: Prod
     const [isNew, setIsNew] = useState(product?.isNew ?? false);
     const [error, setError] = useState('');
 
-    const categoryItems = categories.map((category) => ({ value: category.id, label: category.name }));
+    // só as categorias ativas: o backend não aceita produto em categoria inativa
+    const categoryItems = categories
+        .filter((category) => category.active)
+        .map((category) => ({ value: category.id, label: category.name }));
 
     function handleSubmit(event: React.FormEvent) {
         event.preventDefault();
